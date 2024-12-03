@@ -4,18 +4,13 @@ import openai
 
 # Sidebar for API key
 st.sidebar.title("API Key")
-api_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
-
+user_api_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
+client = openai.OpenAI(api_key=user_api_key)
 # Input options
 st.title("Smart Passage Analyzer")
 input_text = st.text_area("Enter your passage here:")
 
 if st.button("Analyze"):
-    if not api_key:
-        st.error("Please enter your API key.")
-    else:
-        openai.api_key = api_key
-
         # Process input and call OpenAI Completion API
         if input_text:
             prompt = (
@@ -24,8 +19,8 @@ if st.button("Analyze"):
                 "2. Extract vocabulary with part of speech, translations, and difficulty levels."
             )
             try:
-                response = openai.Completion.create(
-                    engine="text-davinci-003",  # หรือ model ที่คุณต้องการ
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini", 
                     prompt=prompt,
                     max_tokens=1000,
                     temperature=0.7
