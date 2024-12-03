@@ -35,7 +35,7 @@ if st.button('Submit'):
                 messages=messages_so_far
             )
     st.markdown('**AI Response:**')
-    suggestion_text = response.choices[0].message["content"]
+    suggestion_text = response["choices"][0]["message"]["content"]
     suggestions = json.loads(suggestion_text)
     suggestion_df = pd.DataFrame(suggestions)
     st.table(suggestion_df)
