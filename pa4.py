@@ -26,22 +26,17 @@ prompt = (
 )
 
 if st.button('Generate Exam'):
-    if not user_input.strip():
-        st.error("Please provide keywords to generate the exam.")
-    else:
-        try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": prompt},
-                    {"role": "user", "content": user_input}
-                ]
-            )
 
-            answer = response['choices'][0]['message']['content']
-            st.markdown('**Generated Reading Exam:**')
-            st.write(answer)
-        except openai.error.OpenAIError as e:
-            st.error(f"An error occurred: {e}")
+    response = openai.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": user_input}
+            ]
+        )
+    
+    answer = response['choices'][0]['message']['content']
+    st.markdown('**Generated Reading Exam:**')
+    st.write(answer)
 
 
