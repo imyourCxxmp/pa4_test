@@ -1,49 +1,38 @@
 import streamlit as st
-import openai
-import json
 import pandas as pd
+import openai
 
-# Get the API key from the sidebar called OpenAI API key
-user_api_key = st.sidebar.text_input("OpenAI API key", type="password")
+# Sidebar for API key
+st.sidebar.title("API Key")
+api_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
 
-client = openai.OpenAI(api_key=user_api_key)
-prompt = """Act as an AI writing tutor in English. You will receive a 
-            piece of writing and you should give suggestions on how to improve it.
-            List the suggestions in a JSON array, one suggestion per line.
-            Each suggestion should have 3 fields:
-            - "before" - the text before the suggestion
-            - "after" - the text after the suggestion
-            - "category" - the category of the suggestion one of "grammar", "style", "word choice", "other"
-            - "comment" - a comment about the suggestion
-            Don't say anything at first. Wait for the user to say something.
-        """    
+# Input options
+st.title("Smart Passage Analyzer")
+input_text = st.text_area("Enter your passage here:")
 
+if st.button("Analyze"):
+    if not api_key:
+        st.error("Please enter your API key.")
+    else:
+        openai.api_key = api_key
 
-st.title('Writing tutor')
-st.markdown('Input the writing that you want to improve. \n\
-            The AI will give you suggestions on how to improve it.')
+        # Process input and call OpenAI Completion API
+        if input_text:
+            prompt = (
+                f"Analyze the following text: {input_text}\n"
+                "1. Create 3 Cloze Test questions with answers and explanations.\n"
+                "2. Extract vocabulary with part of speech, translations, and difficulty levels."
+            )
+            try:
+                response = openai.Completion.create(
+                    engine="text-davinci-003",  # หรือ model ที่คุณต้องการ
+                    prompt=prompt,
+                    max_tokens=1000,
+                    temperature=0.7
+                )
+                result = response.choices[0].text.strip()
+                st.write("**Analysis Result:**")
+                st.text(result)
 
-user_input = st.text_area("Enter some text to correct:", "Your text here")
-
-
-# submit button after text input
-if st.button('Submit'):
-    messages_so_far = [
-        {"role": "system", "content": prompt},
-        {'role': 'user', 'content': user_input},
-    ]
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=messages_so_far
-    )
-    # Show the response from the AI in a box
-    st.markdown('**AI response:**')
-    suggestion_dictionary = response.choices[0].message.content
-
-
-    sd = json.loads(suggestion_dictionary)
-
-    print (sd)
-    suggestion_df = pd.DataFrame.from_dict(sd)
-    print(suggestion_df)
-    st.table(suggestion_df)
+            except Exception as e:
+                st.error(f"Error occurred: {e}")
