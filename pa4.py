@@ -1,23 +1,33 @@
 import streamlit as st
-import pandas as pd
-import json
 import openai
+import json
+import pandas as pd
 
+# Get the API key from the sidebar called OpenAI API key
 user_api_key = st.sidebar.text_input("OpenAI API key", type="password")
+
 client = openai.OpenAI(api_key=user_api_key)
-prompt = """Act as an english exam writer who want undergraduate student to develop their reading comprehension skills. 
-1.Your task is generating reading comprehension exam from keyword provided by user. 
-2.You have to fact check and prove before using the information.
-3.The article should be 400-500 words , vocabulary should be B2-C1 following the CEFR level and grammar must correct and no error.
-4.The exam should be 10 questions with 4 multiple choice that complex and challenging that require deeper comprehension and interpretation.
-5.Then, you have to provide the answer key description with proper reasons for every questions in json array.
-"""
+prompt = """Act as an AI writing tutor in English. You will receive a 
+            piece of writing and you should give suggestions on how to improve it.
+            List the suggestions in a JSON array, one suggestion per line.
+            Each suggestion should have 3 fields:
+            - "before" - the text before the suggestion
+            - "after" - the text after the suggestion
+            - "category" - the category of the suggestion one of "grammar", "style", "word choice", "other"
+            - "comment" - a comment about the suggestion
+            Don't say anything at first. Wait for the user to say something.
+        """    
 
-st.title('Reading exam generator')
-st.markdown('AI ช่วยแต่งข้อสอบพาร์ต Reading เพียงแค่เขียน keyword ที่จะต้องการ \n Article จะมีความยาว 400-500 คำ ความยากระดับ B1-B2 และมีข้อสอบทั้งหมด 10 ข้อ')
-user_input = st.text_area('text your keyword here')
 
-if st.button('Click'):
+st.title('Writing tutor')
+st.markdown('Input the writing that you want to improve. \n\
+            The AI will give you suggestions on how to improve it.')
+
+user_input = st.text_area("Enter some text to correct:", "Your text here")
+
+
+# submit button after text input
+if st.button('Submit'):
     messages_so_far = [
         {"role": "system", "content": prompt},
         {'role': 'user', 'content': user_input},
@@ -26,11 +36,14 @@ if st.button('Click'):
         model="gpt-4o-mini",
         messages=messages_so_far
     )
+    # Show the response from the AI in a box
     st.markdown('**AI response:**')
-    answer = response.choices[0].message.content
-    sd = json.loads(answer)
+    suggestion_dictionary = response.choices[0].message.content
+
+
+    sd = json.loads(suggestion_dictionary)
 
     print (sd)
-    ans = pd.DataFrame.from_dict(sd)
-    print(ans)
-    st.table(ans)
+    suggestion_df = pd.DataFrame.from_dict(sd)
+    print(suggestion_df)
+    st.table(suggestion_df)
