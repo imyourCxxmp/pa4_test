@@ -23,7 +23,7 @@ if st.button('Click'):
         {'role': 'user', 'content': user_input},
     ]
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4",
         messages=messages_so_far
     )
     st.markdown('**AI response:**')
