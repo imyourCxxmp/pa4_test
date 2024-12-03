@@ -1,36 +1,47 @@
 import streamlit as st
-import pandas as pd
-import json
 import openai
 
-user_api_key = st.sidebar.text_input("OpenAI API key", type="password")
-client = openai.OpenAI(api_key=user_api_key)
-prompt = """Act as an english exam writer who want undergraduate student to develop their reading comprehension skills. 
-1.Your task is generating reading comprehension exam from keyword provided by user. 
-2.You have to fact check and prove before using the information.
-3.The article should be 400-500 words , vocabulary should be B2-C1 following the CEFR level and grammar must correct and no error.
-4.The exam should be 10 questions with 4 multiple choice that complex and challenging that require deeper comprehension and interpretation.
-5.Then, you have to provide the answer key description with proper reasons for every questions in the table.
-"""
+st.title('Reading Exam Generator')
+st.markdown(
+    'AI ช่วยแต่งข้อสอบพาร์ต Reading เพียงแค่เขียน keyword ที่จะต้องการ \n'
+    'Article จะมีความยาว 400-500 คำ ความยากระดับ B2-C1 และมีข้อสอบทั้งหมด 10 ข้อ'
+)
 
-st.title('Reading exam generator')
-st.markdown('AI ช่วยแต่งข้อสอบพาร์ต Reading เพียงแค่เขียน keyword ที่จะต้องการ \n Article จะมีความยาว 400-500 คำ ความยากระดับ B1-B2 และมีข้อสอบทั้งหมด 10 ข้อ')
-user_input = st.text_area('text your keyword here')
+user_api_key = st.sidebar.text_input("Enter your OpenAI API key", type="password")
 
-if st.button('Click'):
-    messages_so_far = [
-        {"role": "system", "content": prompt},
-        {'role': 'user', 'content': user_input},
-    ]
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=messages_so_far
-    )
-    st.markdown('**AI response:**')
-    answer = response.choices[0].message.content
-    sd = json.loads(answer)
+if not user_api_key:
+    st.warning("Please provide your OpenAI API key to proceed.")
+else:
+    openai.api_key = user_api_key  # Set OpenAI API key
 
-    print (sd)
-    ans = pd.DataFrame.from_dict(sd)
-    print(ans)
-    st.table(ans)
+user_input = st.text_area('Enter your keyword(s) here:', 'e.g., Christmas Day')
+
+prompt = (
+    "Act as an English exam writer who wants undergraduate students to develop their reading comprehension skills.\n"
+    "1. Your task is to generate a reading comprehension exam from the keyword(s) provided by the user.\n"
+    "2. You have to fact-check and verify information before using it.\n"
+    "3. The article should be 400-500 words long, use vocabulary at the B2-C1 CEFR level, and contain grammatically correct sentences.\n"
+    "4. Create 10 challenging multiple-choice questions requiring deeper comprehension and interpretation.\n"
+    "5. Provide an answer key with proper reasoning for each question in a table format."
+)
+
+if st.button('Generate Exam'):
+    if not user_input.strip():
+        st.error("Please provide keywords to generate the exam.")
+    else:
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": user_input}
+                ]
+            )
+
+            answer = response['choices'][0]['message']['content']
+            st.markdown('**Generated Reading Exam:**')
+            st.write(answer)
+        except openai.error.OpenAIError as e:
+            st.error(f"An error occurred: {e}")
+
+
