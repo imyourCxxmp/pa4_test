@@ -28,17 +28,14 @@ if st.button('Submit'):
     messages_so_far = [
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": user_input},
-            ]
+    ]
     
     response = client.chat.completions.create(
                 model="gpt-4",
                 messages=messages_so_far
-            )
+    )
     st.markdown('**AI Response:**')
     suggestion_text = response["choices"][0]["message"]["content"]
     suggestions = json.loads(suggestion_text)
     suggestion_df = pd.DataFrame(suggestions)
     st.table(suggestion_df)
-    
-            
-
